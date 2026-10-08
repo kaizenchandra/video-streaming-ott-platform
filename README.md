@@ -2,6 +2,8 @@
 
 Java21 / Spring Boot3.5.16 backend, designed before business implementation. The [Architecture Gate](docs/architecture/architecture-gate.md) records the accepted technical baseline. [Traceability](docs/requirements/requirements-traceability-matrix.md) separates requested scope from actual progress. This repository does not claim production or Netflix-scale readiness.
 
+For a step-by-step functional walkthrough using curl, see [test.md](test.md). It covers local authentication, payment, playback, media, watch state, discovery, live events, ads, analytics and support, with failure checks and cleanup.
+
 ## Local prerequisites
 
 Java21, Maven3.9+, Docker engine/Compose. On macOS `scripts/mvn.sh` selects installed Java21; elsewhere configure JAVA_HOME. Commercial payment/DRM/feed integrations use explicit local adapters in their phases. FFmpeg/FFprobe7.1 are required for native media tests; the pinned worker image supplies them. Tests need real Docker; no H2 substitute for PostgreSQL correctness.
