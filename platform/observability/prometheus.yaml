@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: prometheus
+    static_configs: [{targets: ['localhost:9090']}]
+# Services require metrics.read workload JWT. Add a secret bearer_token_file and
+# the member target after configuring a metrics client; do not expose metrics publicly.

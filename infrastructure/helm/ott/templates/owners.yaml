@@ -1,0 +1,132 @@
+{{- range $name, $owner := .Values.owners }}
+{{- if $owner.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $.Release.Name }}-{{ $name }}
+  {{- if $owner.roleArn }}
+  annotations:
+    eks.amazonaws.com/role-arn: {{ $owner.roleArn | quote }}
+  {{- end }}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-{{ $name }}
+data:
+  {{- range $key, $value := merge (deepCopy $owner.env) (deepCopy $.Values.sharedEnv) }}
+  {{ $key }}: {{ $value | toString | quote }}
+  {{- end }}
+  SERVER_PORT: "8080"
+  {{- if eq $.Values.mode "production" }}
+  SPRING_PROFILES_ACTIVE: prod
+  SPRING_FLYWAY_ENABLED: "false"
+  {{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Release.Name }}-{{ $name }}
+  annotations: {argocd.argoproj.io/sync-wave: "0"}
+spec:
+  replicas: {{ $.Values.replicas }}
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 300
+  selector: {matchLabels: {app.kubernetes.io/name: {{ $.Release.Name }}-{{ $name }}}}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: {{ $.Release.Name }}-{{ $name }}, app.kubernetes.io/part-of: ott}
+    spec:
+      serviceAccountName: {{ $.Release.Name }}-{{ $name }}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 40
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, runAsGroup: 10001, fsGroup: 10001, seccompProfile: {type: RuntimeDefault}}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: {matchLabels: {app.kubernetes.io/name: {{ $.Release.Name }}-{{ $name }}}}
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector: {matchLabels: {app.kubernetes.io/name: {{ $.Release.Name }}-{{ $name }}}}
+      containers:
+        - name: {{ $name }}
+          image: {{ $owner.image | quote }}
+          imagePullPolicy: {{ $.Values.imagePullPolicy }}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          ports: [{name: http, containerPort: 8080}]
+          envFrom:
+            - configMapRef: {name: {{ $.Release.Name }}-{{ $name }}}
+            - secretRef: {name: {{ required "Owner Secret reference required" $owner.secretName }}}
+          resources:
+            {{- toYaml $.Values.resources | nindent 12 }}
+          startupProbe: {httpGet: {path: /actuator/health/liveness, port: http}, periodSeconds: 5, timeoutSeconds: 3, failureThreshold: 60}
+          readinessProbe: {httpGet: {path: /actuator/health/readiness, port: http}, periodSeconds: 5, timeoutSeconds: 3, failureThreshold: 2}
+          livenessProbe: {httpGet: {path: /actuator/health/liveness, port: http}, periodSeconds: 10, timeoutSeconds: 3, failureThreshold: 3}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {sizeLimit: 256Mi}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: {{ $.Release.Name }}-{{ $name }}}
+spec:
+  selector: {app.kubernetes.io/name: {{ $.Release.Name }}-{{ $name }}}
+  ports: [{name: http, port: 8080, targetPort: http}]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: {name: {{ $.Release.Name }}-{{ $name }}}
+spec:
+  minAvailable: {{ max 0 (sub $.Values.replicas 1) }}
+  selector: {matchLabels: {app.kubernetes.io/name: {{ $.Release.Name }}-{{ $name }}}}
+{{- if $.Values.autoscaling.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: {{ $.Release.Name }}-{{ $name }}}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: {{ $.Release.Name }}-{{ $name }}}
+  minReplicas: {{ $.Values.autoscaling.minReplicas }}
+  maxReplicas: {{ $.Values.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource: {name: cpu, target: {type: Utilization, averageUtilization: {{ $.Values.autoscaling.cpu }}}}
+{{- end }}
+{{- if $.Values.migrations.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $.Release.Name }}-{{ $name }}-migration
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 300
+  template:
+    metadata: {labels: {app.kubernetes.io/part-of: ott, app.kubernetes.io/name: {{ $.Release.Name }}-{{ $name }}}}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, runAsGroup: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: migrate
+          image: {{ $owner.image | quote }}
+          command: [java, -Dloader.main=com.ott.{{ $name }}.infrastructure.DatabaseMigration, -cp, /app/app.jar, org.springframework.boot.loader.launch.PropertiesLauncher]
+          envFrom: [{secretRef: {name: {{ required "Migration Secret reference required" $owner.migrationSecretName }}}}]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          resources: {requests: {cpu: 100m, memory: 256Mi}, limits: {cpu: "1", memory: 512Mi}}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {sizeLimit: 64Mi}}]
+{{- end }}
+{{- end }}{{- end }}

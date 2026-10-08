@@ -1,0 +1,475 @@
+{
+  "mode": "local",
+  "replicas": 3,
+  "imagePullPolicy": "IfNotPresent",
+  "externalEgressCidrs": [],
+  "externalEgressPorts": [
+    443,
+    5432,
+    6379,
+    9096,
+    7233
+  ],
+  "sharedEnv": {
+    "OIDC_AUDIENCE": "ott-api",
+    "KAFKA_BOOTSTRAP_SERVERS": "kafka:9092",
+    "SCHEMA_REGISTRY_URL": "http://schema-registry:8081",
+    "MEMBER_URL": "http://ott-member:8080",
+    "CONTENT_URL": "http://ott-content:8080",
+    "COMMERCE_URL": "http://ott-commerce:8080",
+    "PLAYBACK_URL": "http://ott-playback:8080"
+  },
+  "resources": {
+    "requests": {
+      "cpu": "250m",
+      "memory": "512Mi"
+    },
+    "limits": {
+      "cpu": "1",
+      "memory": "1Gi"
+    }
+  },
+  "autoscaling": {
+    "enabled": false,
+    "minReplicas": 3,
+    "maxReplicas": 10,
+    "cpu": 60
+  },
+  "ingress": {
+    "enabled": false,
+    "className": "alb",
+    "host": "",
+    "tlsSecret": "",
+    "certificateArn": "",
+    "wafAclArn": ""
+  },
+  "owners": {
+    "member": {
+      "enabled": true,
+      "image": "ott-member:local",
+      "secretName": "ott-member",
+      "migrationSecretName": "ott-member-migration",
+      "roleArn": "",
+      "env": {}
+    },
+    "content": {
+      "enabled": true,
+      "image": "ott-content:local",
+      "secretName": "ott-content",
+      "migrationSecretName": "ott-content-migration",
+      "roleArn": "",
+      "env": {}
+    },
+    "commerce": {
+      "enabled": true,
+      "image": "ott-commerce:local",
+      "secretName": "ott-commerce",
+      "migrationSecretName": "ott-commerce-migration",
+      "roleArn": "",
+      "env": {
+        "PAYMENT_MODE": "mock"
+      }
+    },
+    "playback": {
+      "enabled": true,
+      "image": "ott-playback:local",
+      "secretName": "ott-playback",
+      "migrationSecretName": "ott-playback-migration",
+      "roleArn": "",
+      "env": {
+        "PLAYBACK_PROVIDERS": "mock"
+      }
+    },
+    "media": {
+      "enabled": true,
+      "image": "ott-media:local",
+      "secretName": "ott-media",
+      "migrationSecretName": "ott-media-migration",
+      "roleArn": "",
+      "env": {
+        "MEDIA_PROTECTION": "MOCK_CLEAR_ONLY"
+      }
+    },
+    "experience": {
+      "enabled": true,
+      "image": "ott-experience:local",
+      "secretName": "ott-experience",
+      "migrationSecretName": "ott-experience-migration",
+      "roleArn": "",
+      "env": {}
+    },
+    "engagement": {
+      "enabled": true,
+      "image": "ott-engagement:local",
+      "secretName": "ott-engagement",
+      "migrationSecretName": "ott-engagement-migration",
+      "roleArn": "",
+      "env": {}
+    },
+    "insights": {
+      "enabled": true,
+      "image": "ott-insights:local",
+      "secretName": "ott-insights",
+      "migrationSecretName": "ott-insights-migration",
+      "roleArn": "",
+      "env": {}
+    },
+    "operations": {
+      "enabled": true,
+      "image": "ott-operations:local",
+      "secretName": "ott-operations",
+      "migrationSecretName": "ott-operations-migration",
+      "roleArn": "",
+      "env": {}
+    }
+  },
+  "worker": {
+    "enabled": false,
+    "image": "ott-media-worker:local",
+    "secretName": "ott-media-worker",
+    "roleArn": "",
+    "replicas": 1,
+    "env": {}
+  },
+  "migrations": {
+    "enabled": false
+  },
+  "routes": [
+    {
+      "path": "/v1/admin/media/jobs/*/upload-completed",
+      "owner": "media"
+    },
+    {
+      "path": "/v1/admin/live/events/*/transitions",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/admin/live/events/*/highlights",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/admin/catalog/*/localizations",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/playback/sessions/*/heartbeat",
+      "owner": "playback"
+    },
+    {
+      "path": "/v1/admin/insights/experiments/*",
+      "owner": "insights"
+    },
+    {
+      "path": "/v1/admin/live/events/*/failover",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/admin/live/events/*/schedule",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/profiles/*/continue-watching",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/admin/insights/experiments",
+      "owner": "insights"
+    },
+    {
+      "path": "/v1/notification-preferences/*",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/profiles/*/personalization",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/notification-preferences",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/admin/catalog/*/taxonomy",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/admin/catalog/*/versions",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/experiments/*/assignment",
+      "owner": "insights"
+    },
+    {
+      "path": "/v1/live/events/*/highlights",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/notification-deliveries",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/admin/catalog/*/publish",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/notification-contacts/*",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/support/cases/*/account",
+      "owner": "operations"
+    },
+    {
+      "path": "/v1/admin/catalog/*/review",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/admin/catalog/*/rights",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/admin/search/rebuild/*",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/live/events/*/playback",
+      "owner": "playback"
+    },
+    {
+      "path": "/v1/profiles/*/reactions/*",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/profiles/*/watchlist/*",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/admin/ads/campaigns/*",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/admin/cases/*/actions",
+      "owner": "operations"
+    },
+    {
+      "path": "/v1/admin/cases/*/resolve",
+      "owner": "operations"
+    },
+    {
+      "path": "/v1/support/cases/*/audit",
+      "owner": "operations"
+    },
+    {
+      "path": "/v1/profiles/*/progress/*",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/admin/search/rebuild",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/notifications/*/read",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/profiles/*/watchlist",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/profiles/*/ratings/*",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/admin/ads/campaigns",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/admin/analytics/qoe",
+      "owner": "insights"
+    },
+    {
+      "path": "/v1/admin/media/uploads",
+      "owner": "media"
+    },
+    {
+      "path": "/v1/search/autocomplete",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/subscription/cancel",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/admin/live/events/*",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/playback/sessions/*",
+      "owner": "playback"
+    },
+    {
+      "path": "/v1/profiles/*/progress",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/profile-selections",
+      "owner": "member"
+    },
+    {
+      "path": "/v1/admin/media/jobs/*",
+      "owner": "media"
+    },
+    {
+      "path": "/v1/orders/*/reconcile",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/profiles/*/history",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/admin/live/events",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/playback/sessions",
+      "owner": "playback"
+    },
+    {
+      "path": "/v1/telemetry/batches",
+      "owner": "insights"
+    },
+    {
+      "path": "/v1/insights/consent",
+      "owner": "insights"
+    },
+    {
+      "path": "/v1/parental-control",
+      "owner": "member"
+    },
+    {
+      "path": "/v1/webhooks/payment",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/admin/commands/*",
+      "owner": "operations"
+    },
+    {
+      "path": "/v1/orders/*/invoice",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/recommendations",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/support/cases/*",
+      "owner": "operations"
+    },
+    {
+      "path": "/v1/admin/rights/*",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/admin/catalog",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/notifications",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/support/cases",
+      "owner": "operations"
+    },
+    {
+      "path": "/v1/live/events/*",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/ads/decision",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/subscription",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/accounts/me",
+      "owner": "member"
+    },
+    {
+      "path": "/v1/admin/plans",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/live/events",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/downloads/*",
+      "owner": "playback"
+    },
+    {
+      "path": "/v1/reminders/*",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/ads/events",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/profiles/*",
+      "owner": "member"
+    },
+    {
+      "path": "/v1/downloads",
+      "owner": "playback"
+    },
+    {
+      "path": "/v1/reminders",
+      "owner": "engagement"
+    },
+    {
+      "path": "/v1/catalog/*",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/devices/*",
+      "owner": "member"
+    },
+    {
+      "path": "/v1/profiles",
+      "owner": "member"
+    },
+    {
+      "path": "/v1/orders/*",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/catalog",
+      "owner": "content"
+    },
+    {
+      "path": "/v1/devices",
+      "owner": "member"
+    },
+    {
+      "path": "/v1/orders",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/search",
+      "owner": "experience"
+    },
+    {
+      "path": "/v1/plans",
+      "owner": "commerce"
+    },
+    {
+      "path": "/v1/home",
+      "owner": "experience"
+    }
+  ]
+}

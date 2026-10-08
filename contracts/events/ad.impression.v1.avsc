@@ -1,0 +1,66 @@
+{
+  "type": "record",
+  "name": "AdImpressionV1",
+  "namespace": "com.ott.contracts.events",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string"
+    },
+    {
+      "name": "aggregateVersion",
+      "type": "long"
+    },
+    {
+      "name": "occurredAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "producer",
+      "type": "string"
+    },
+    {
+      "name": "traceId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "decisionId",
+      "type": "string"
+    },
+    {
+      "name": "campaignId",
+      "type": "string"
+    },
+    {
+      "name": "profileRef",
+      "type": "string"
+    },
+    {
+      "name": "quartile",
+      "type": "int"
+    },
+    {
+      "name": "accountId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    }
+  ]
+}

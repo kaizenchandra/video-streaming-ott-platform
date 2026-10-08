@@ -1,0 +1,16 @@
+CREATE TABLE operations_account(account_id UUID PRIMARY KEY,version BIGINT NOT NULL DEFAULT 0);
+CREATE TABLE security_signal(id UUID PRIMARY KEY,account_id UUID NOT NULL REFERENCES operations_account(account_id),kind VARCHAR(32) NOT NULL,region VARCHAR(8) NOT NULL,fingerprint CHAR(64) NOT NULL,occurred_at TIMESTAMPTZ NOT NULL,received_at TIMESTAMPTZ NOT NULL);
+CREATE INDEX signal_window ON security_signal(account_id,kind,occurred_at);
+CREATE INDEX signal_retention ON security_signal(received_at,id);
+CREATE TABLE signal_quota(account_id UUID NOT NULL REFERENCES operations_account(account_id),day DATE NOT NULL,count INTEGER NOT NULL CHECK(count BETWEEN 0 AND 1000),PRIMARY KEY(account_id,day));
+CREATE TABLE support_case(id UUID PRIMARY KEY,account_id UUID NOT NULL REFERENCES operations_account(account_id),kind VARCHAR(32) NOT NULL,status VARCHAR(16) NOT NULL DEFAULT 'OPEN' CHECK(status IN('OPEN','RESOLVED')),version BIGINT NOT NULL DEFAULT 1,created_at TIMESTAMPTZ NOT NULL,updated_at TIMESTAMPTZ NOT NULL);
+CREATE UNIQUE INDEX one_open_case ON support_case(account_id,kind) WHERE status='OPEN';
+CREATE INDEX cases_page ON support_case(created_at,id);
+CREATE TABLE support_request(id UUID PRIMARY KEY,fingerprint CHAR(64) NOT NULL,case_id UUID NOT NULL REFERENCES support_case(id));
+CREATE TABLE owner_command(id UUID PRIMARY KEY,case_id UUID NOT NULL REFERENCES support_case(id),account_id UUID NOT NULL REFERENCES operations_account(account_id),action VARCHAR(40) NOT NULL,reason VARCHAR(32) NOT NULL,fingerprint CHAR(64) NOT NULL,state VARCHAR(16) NOT NULL DEFAULT 'PENDING' CHECK(state IN('PENDING','RUNNING','RETRY','APPLIED','REJECTED','RECONCILE')),attempts INTEGER NOT NULL DEFAULT 0,claim_token UUID,claimed_until TIMESTAMPTZ,next_attempt_at TIMESTAMPTZ NOT NULL,owner_version BIGINT,result_code VARCHAR(48),created_at TIMESTAMPTZ NOT NULL);
+CREATE INDEX commands_due ON owner_command(next_attempt_at,id) WHERE state IN('PENDING','RETRY','RUNNING');
+CREATE TABLE operations_audit(id UUID PRIMARY KEY,account_id UUID NOT NULL REFERENCES operations_account(account_id),case_id UUID NOT NULL REFERENCES support_case(id),actor_hash CHAR(64) NOT NULL,action VARCHAR(40) NOT NULL,result VARCHAR(48) NOT NULL,version BIGINT NOT NULL,at TIMESTAMPTZ NOT NULL);
+CREATE FUNCTION protect_operations_audit() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Audit records are append only'; END; $$;
+CREATE TRIGGER append_only_audit BEFORE UPDATE OR DELETE ON operations_audit FOR EACH ROW EXECUTE FUNCTION protect_operations_audit();
+CREATE TABLE outbox_event(event_id UUID PRIMARY KEY,aggregate_id UUID NOT NULL,aggregate_version BIGINT NOT NULL,topic VARCHAR(120) NOT NULL,payload JSONB NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,published_at TIMESTAMPTZ,claim_token UUID,claimed_until TIMESTAMPTZ,next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,attempts INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX operations_outbox_pending_idx ON outbox_event(next_attempt_at,created_at,event_id) WHERE published_at IS NULL;

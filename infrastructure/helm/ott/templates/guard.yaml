@@ -1,0 +1,20 @@
+{{- if eq .Values.mode "production" }}
+{{- if or (ne .Release.Name "ott") (ne .Release.Namespace "ott") }}{{ fail "Production owner roles require release and namespace ott" }}{{ end }}
+{{- if not (regexMatch "^arn:aws[a-z-]*:wafv2:[a-z0-9-]+:[0-9]{12}:regional/webacl/" .Values.ingress.wafAclArn) }}{{ fail "Production requires a regional API WAF ARN" }}{{ end }}
+{{- if or (index .Values.owners "commerce").enabled (index .Values.owners "playback").enabled (index .Values.owners "media").enabled .Values.worker.enabled }}
+{{- fail "Commercial payment/DRM/media protection providers are unavailable; disable commerce, playback, media and worker in production" }}
+{{- end }}
+{{- if not .Values.migrations.enabled }}{{ fail "Production requires isolated owner migration jobs" }}{{ end }}
+{{- if not .Values.ingress.enabled }}{{ fail "Production requires TLS ingress" }}{{ end }}
+{{- if not .Values.externalEgressCidrs }}{{ fail "Production requires explicit private dependency egress CIDRs" }}{{ end }}
+{{- range $name, $owner := .Values.owners }}
+{{- if $owner.enabled }}
+{{- if not (regexMatch "@sha256:[a-f0-9]{64}$" $owner.image) }}{{ fail (printf "%s requires immutable image digest" $name) }}{{ end }}
+{{- $role := required (printf "%s requires workload role" $name) $owner.roleArn }}
+{{- if eq $owner.secretName $owner.migrationSecretName }}{{ fail "Application and migration Secrets must be separate" }}{{ end }}
+{{- end }}{{- end }}
+{{- range $key, $value := .Values.sharedEnv }}
+{{- if regexMatch "(?i)(PASSWORD|SECRET|PRIVATE_KEY|TOKEN)$" $key }}{{ fail "Credentials belong in owner Secrets, not sharedEnv" }}{{ end }}
+{{- if regexMatch `(?i)(localhost|127\.0\.0\.1|\.invalid|http://)` (toString $value) }}{{ fail (printf "Production requires real/TLS shared endpoint: %s" $key) }}{{ end }}
+{{- end }}
+{{- end }}

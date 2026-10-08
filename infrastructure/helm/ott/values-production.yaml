@@ -1,0 +1,10 @@
+# Requires private overlay: owner digests/Secrets/roles, TLS ingress, real external endpoints.
+# Commercial payment, DRM and media protection adapters are unavailable; remain disabled.
+mode: production
+migrations: {enabled: true}
+owners:
+  commerce: {enabled: false}
+  playback: {enabled: false}
+  media: {enabled: false}
+worker: {enabled: false}
+ingress: {enabled: true}

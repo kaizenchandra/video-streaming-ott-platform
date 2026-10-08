@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata: {name: ott, namespace: argocd}
+spec:
+  sourceRepos: [REPLACE_WITH_REPOSITORY_URL]
+  destinations: [{namespace: ott, server: 'https://kubernetes.default.svc'}]
+  namespaceResourceWhitelist:
+    - {group: '', kind: Service}
+    - {group: '', kind: ServiceAccount}
+    - {group: '', kind: ConfigMap}
+    - {group: apps, kind: Deployment}
+    - {group: batch, kind: Job}
+    - {group: policy, kind: PodDisruptionBudget}
+    - {group: autoscaling, kind: HorizontalPodAutoscaler}
+    - {group: networking.k8s.io, kind: NetworkPolicy}
+    - {group: networking.k8s.io, kind: Ingress}
+  clusterResourceWhitelist: []

@@ -1,0 +1,70 @@
+{
+  "type": "record",
+  "name": "ReactionChangedV1",
+  "namespace": "com.ott.contracts.events",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string"
+    },
+    {
+      "name": "aggregateVersion",
+      "type": "long"
+    },
+    {
+      "name": "occurredAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "producer",
+      "type": "string"
+    },
+    {
+      "name": "traceId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "profileId",
+      "type": "string"
+    },
+    {
+      "name": "contentId",
+      "type": "string"
+    },
+    {
+      "name": "rating",
+      "type": "int",
+      "doc": "1..5 explicit stars; 0 means no star rating. First producer introduced in Phase 6."
+    },
+    {
+      "name": "reaction",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null,
+      "doc": "LIKE or DISLIKE; null means no thumb reaction."
+    },
+    {
+      "name": "removed",
+      "type": "boolean",
+      "default": false,
+      "doc": "Both star rating and thumb reaction removed."
+    }
+  ]
+}

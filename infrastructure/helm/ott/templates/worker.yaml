@@ -1,0 +1,32 @@
+{{- if .Values.worker.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: {{ .Release.Name }}-media-worker}
+spec:
+  replicas: {{ .Values.worker.replicas }}
+  selector: {matchLabels: {app.kubernetes.io/name: {{ .Release.Name }}-media-worker}}
+  template:
+    metadata: {labels: {app.kubernetes.io/name: {{ .Release.Name }}-media-worker, app.kubernetes.io/part-of: ott}}
+    spec:
+      nodeSelector: {kubernetes.io/arch: amd64}
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 45
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, runAsGroup: 10001, fsGroup: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: worker
+          image: {{ .Values.worker.image | quote }}
+          args: [--spring.main.web-application-type=none, --ott.media.worker=true, --ott.media.worker-health.enabled=true]
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          ports: [{name: management, containerPort: 8091}]
+          envFrom: [{secretRef: {name: {{ .Values.worker.secretName }}}}]
+          env:
+            {{- range $key, $value := .Values.worker.env }}
+            - {name: {{ $key }}, value: {{ $value | toString | quote }}}
+            {{- end }}
+          resources: {requests: {cpu: "1", memory: 512Mi}, limits: {cpu: "2", memory: 1Gi}}
+          startupProbe: {httpGet: {path: /health/live, port: management}, periodSeconds: 5, failureThreshold: 60}
+          readinessProbe: {httpGet: {path: /health/ready, port: management}, periodSeconds: 5, timeoutSeconds: 4, failureThreshold: 2}
+          livenessProbe: {httpGet: {path: /health/live, port: management}, periodSeconds: 10, timeoutSeconds: 3, failureThreshold: 3}
+          volumeMounts: [{name: scratch, mountPath: /tmp}]
+      volumes: [{name: scratch, emptyDir: {sizeLimit: 2Gi}}]
+{{- end }}

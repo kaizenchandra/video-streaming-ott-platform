@@ -1,0 +1,62 @@
+{
+  "type": "record",
+  "name": "EntitlementChangedV1",
+  "namespace": "com.ott.contracts.events",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string"
+    },
+    {
+      "name": "aggregateVersion",
+      "type": "long"
+    },
+    {
+      "name": "occurredAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "producer",
+      "type": "string"
+    },
+    {
+      "name": "traceId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "accountId",
+      "type": "string"
+    },
+    {
+      "name": "active",
+      "type": "boolean"
+    },
+    {
+      "name": "expiresAt",
+      "type": "long"
+    },
+    {
+      "name": "maxStreams",
+      "type": "int"
+    },
+    {
+      "name": "offlineAllowed",
+      "type": "boolean"
+    }
+  ]
+}

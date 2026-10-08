@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="commerce-service" />
+        <module name="engagement-service" />
+        <module name="operations-service" />
+        <module name="content-service" />
+        <module name="media-service" />
+        <module name="member-service" />
+        <module name="experience-service" />
+        <module name="insights-service" />
+        <module name="journey-tests" />
+        <module name="contracts" />
+        <module name="playback-service" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="commerce-service" options="-parameters" />
+      <module name="content-service" options="-parameters" />
+      <module name="contracts" options="-parameters" />
+      <module name="engagement-service" options="-parameters" />
+      <module name="experience-service" options="-parameters" />
+      <module name="insights-service" options="-parameters" />
+      <module name="journey-tests" options="-parameters" />
+      <module name="media-service" options="-parameters" />
+      <module name="member-service" options="-parameters" />
+      <module name="operations-service" options="-parameters" />
+      <module name="playback-service" options="-parameters" />
+    </option>
+  </component>
+</project>

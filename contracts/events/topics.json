@@ -1,0 +1,148 @@
+[
+  {
+    "topic": "member.device-revoked.v1",
+    "owner": "member",
+    "schema": "member.device-revoked.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "catalog.published.v1",
+    "owner": "content",
+    "schema": "catalog.published.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "rights.changed.v1",
+    "owner": "content",
+    "schema": "rights.changed.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "live.changed.v1",
+    "owner": "content",
+    "schema": "live.changed.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "subscription.changed.v1",
+    "owner": "commerce",
+    "schema": "subscription.changed.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "entitlement.changed.v1",
+    "owner": "commerce",
+    "schema": "entitlement.changed.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "payment.failed.v1",
+    "owner": "commerce",
+    "schema": "payment.failed.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "playback.started.v1",
+    "owner": "playback",
+    "schema": "playback.started.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "playback.ended.v1",
+    "owner": "playback",
+    "schema": "playback.ended.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "media.ready.v1",
+    "owner": "media",
+    "schema": "media.ready.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "media.failed.v1",
+    "owner": "media",
+    "schema": "media.failed.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "watch.updated.v1",
+    "owner": "experience",
+    "schema": "watch.updated.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "reaction.changed.v1",
+    "owner": "experience",
+    "schema": "reaction.changed.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "ad.impression.v1",
+    "owner": "engagement",
+    "schema": "ad.impression.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "notification.delivered.v1",
+    "owner": "engagement",
+    "schema": "notification.delivered.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "qoe.received.v1",
+    "owner": "insights",
+    "schema": "qoe.received.v1.avsc",
+    "status": "DESIGNED_TYPED_CONTRACT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "abuse.signal.v1",
+    "owner": "operations",
+    "schema": "abuse.signal.v1.avsc",
+    "status": "IMPLEMENTED_LOCAL_RISK_AND_COMMAND_AUDIT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "audit.recorded.v1",
+    "owner": "operations",
+    "schema": "audit.recorded.v1.avsc",
+    "status": "IMPLEMENTED_LOCAL_RISK_AND_COMMAND_AUDIT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "abuse.action.v1",
+    "owner": "operations",
+    "schema": "abuse.action.v1.avsc",
+    "status": "IMPLEMENTED_LOCAL_RISK_AND_COMMAND_AUDIT",
+    "compatibility": "BACKWARD_TRANSITIVE"
+  },
+  {
+    "topic": "notification.requested.v1",
+    "owner": "engagement",
+    "compatibility": "BACKWARD_TRANSITIVE",
+    "schema": "notification.requested.v1.avsc"
+  },
+  {
+    "topic": "analytics.received.v1",
+    "owner": "insights",
+    "schema": "analytics.received.v1.avsc",
+    "compatibility": "BACKWARD_TRANSITIVE",
+    "status": "IMPLEMENTED_LOCAL_TYPED_ADMISSION"
+  }
+]

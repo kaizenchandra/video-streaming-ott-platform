@@ -1,0 +1,747 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OTT Playback",
+    "version": "0.1.0",
+    "description": "Device-bound online/offline control-plane authorization; PostgreSQL durable capacity and Redis leases. Local mock-clear DRM/CDN adapters are explicit development implementations. No media bytes are proxied."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8084"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "GrantContext": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "profileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "epoch": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "sessionId",
+          "accountId",
+          "profileId",
+          "contentId",
+          "deviceId",
+          "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "AdContext": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "profileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "sessionId",
+          "accountId",
+          "profileId",
+          "deviceId",
+          "country",
+          "expiresAt"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/v1/playback/sessions": {
+      "post": {
+        "summary": "Start a device-bound session; local mock returns clear-media authorization",
+        "responses": {
+          "200": {
+            "description": "Authorized result"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "contentId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "country": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}$"
+                  }
+                },
+                "required": [
+                  "profileId",
+                  "deviceId",
+                  "contentId",
+                  "country"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Geo-Assertion",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Profile-Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            },
+            "description": "Required for an adult profile where Member account parental locking is enabled; grants expire30min and bind profile/device/PIN revision."
+          }
+        ]
+      }
+    },
+    "/v1/playback/sessions/{id}/heartbeat": {
+      "post": {
+        "summary": "Revalidate rights, device and subscription before bounded renewal",
+        "responses": {
+          "200": {
+            "description": "Authorized result"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "country": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}$"
+                  }
+                },
+                "required": [
+                  "deviceId",
+                  "country"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Geo-Assertion",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Profile-Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            },
+            "description": "Required for an adult profile where Member account parental locking is enabled; grants expire30min and bind profile/device/PIN revision."
+          }
+        ]
+      }
+    },
+    "/v1/playback/sessions/{id}": {
+      "delete": {
+        "summary": "End own session; reserve outstanding grant capacity until expiry",
+        "responses": {
+          "200": {
+            "description": "Authorized result"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/internal/v1/playback/token/check": {
+      "post": {
+        "summary": "Validate grant, device and session ledger; scope playback.internal",
+        "responses": {
+          "200": {
+            "description": "Authorized result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "maxLength": 4096
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "token",
+                  "deviceId"
+                ]
+              }
+            }
+          }
+        },
+        "description": "Requires playback.internal workload scope. Returns validated grant metadata and an account-monotonic server epoch. Offline result additionally retains downloadId as a sessionId alias."
+      }
+    },
+    "/v1/downloads": {
+      "post": {
+        "summary": "Authorize bounded offline download metadata and short-lived CDN access; local clear mock license",
+        "responses": {
+          "200": {
+            "description": "Authorized result"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "contentId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "country": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}$"
+                  }
+                },
+                "required": [
+                  "profileId",
+                  "deviceId",
+                  "contentId",
+                  "country"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Geo-Assertion",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Profile-Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            },
+            "description": "Required for an adult profile where Member account parental locking is enabled; grants expire30min and bind profile/device/PIN revision."
+          }
+        ]
+      }
+    },
+    "/v1/downloads/{id}": {
+      "delete": {
+        "summary": "End own session; reserve outstanding grant capacity until expiry",
+        "responses": {
+          "200": {
+            "description": "Authorized result"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/internal/v1/downloads/token/check": {
+      "post": {
+        "summary": "Validate grant, device and session ledger; scope playback.internal",
+        "responses": {
+          "200": {
+            "description": "Authorized result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "maxLength": 4096
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "token",
+                  "deviceId"
+                ]
+              }
+            }
+          }
+        },
+        "description": "Requires playback.internal workload scope. Returns validated grant metadata and an account-monotonic server epoch. Offline result additionally retains downloadId as a sessionId alias."
+      }
+    },
+    "/v1/live/events/{event}/playback": {
+      "post": {
+        "summary": "Authorize live/DVR/replay through the same VOD stream quota and owner checks",
+        "responses": {
+          "200": {
+            "description": "Authorized result"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profileId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "country": {
+                    "type": "string",
+                    "pattern": "^[A-Z]{2}$"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "LIVE",
+                      "DVR",
+                      "REPLAY"
+                    ]
+                  },
+                  "seekAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "profileId",
+                  "deviceId",
+                  "country",
+                  "mode"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "event",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Geo-Assertion",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Profile-Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            },
+            "description": "Required for an adult profile where Member account parental locking is enabled; grants expire30min and bind profile/device/PIN revision."
+          }
+        ],
+        "description": "Fresh source proof bounds LIVE/DVR grants to at most 30 sec. Failover changes prefix and requires a new session. DVR requires seekAt; LIVE/REPLAY forbid seekAt. X-Geo-Assertion binds trusted edge region to viewer/device. Commercial DRM/CDN acceptance requires provider integration; local adapter is clear media."
+      }
+    },
+    "/internal/v1/playback/ads/context": {
+      "post": {
+        "summary": "Validated current online grant context for optional advertising",
+        "responses": {
+          "200": {
+            "description": "Authorized result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdContext"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Eligibility or geo denied"
+          },
+          "409": {
+            "description": "Capacity, idempotency or session conflict"
+          },
+          "503": {
+            "description": "Dependency unavailable; no authorization issued"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "maxLength": 4096
+                  },
+                  "deviceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "token",
+                  "deviceId"
+                ]
+              }
+            }
+          }
+        },
+        "description": "Requires playback.internal. Country comes from the saved geo-validated session; expiry is the exact supplied token ledger expiry. Existing generic/offline context contracts unchanged."
+      }
+    }
+  }
+}

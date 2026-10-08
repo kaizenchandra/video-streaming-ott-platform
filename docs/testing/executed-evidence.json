@@ -1,0 +1,288 @@
+{
+  "recordedUTC": "2026-10-08T03:23:27.332796+00:00",
+  "scope": "Executed synthetic local environment; no production readiness or regional DR claim",
+  "maven": {
+    "command": "./scripts/mvn.sh --offline --batch-mode -Pintegration,recovery,sbom verify",
+    "tests": 179,
+    "classes": 32,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "reactorProjects": 12,
+    "elapsed": "9m55s",
+    "result": "PASS"
+  },
+  "recovery": {
+    "postgres": {
+      "member": {
+        "tables": 9,
+        "restoreSeconds": 0.483126208,
+        "backupSha256": "bc82dcd6464fac6fe71cdde7db171c4a01ad9734517a5933ad78a6a552eb5eb6"
+      },
+      "content": {
+        "tables": 12,
+        "restoreSeconds": 0.428604292,
+        "backupSha256": "979544b4bda8e2c4bbc994dd3d097adbf015a0114b7775fda27ef571af818951"
+      },
+      "commerce": {
+        "tables": 11,
+        "restoreSeconds": 0.301585208,
+        "backupSha256": "16cb631570be87527b972322411a27cf0a6c6eebf811a2c8090a4242d78819bf"
+      },
+      "playback": {
+        "tables": 7,
+        "restoreSeconds": 0.256344083,
+        "backupSha256": "c926095b521523ee20e5e9e698cc2caee60869e4e00ce99ed9747763832d3fba"
+      },
+      "media": {
+        "tables": 3,
+        "restoreSeconds": 0.255575875,
+        "backupSha256": "c3b4e3a0bbd61f30d216a82035b1ca05ee2060b17df4fda0a9a7872cf1420920"
+      },
+      "experience": {
+        "tables": 15,
+        "restoreSeconds": 0.640495958,
+        "backupSha256": "b4a7ae12b9273eb12f01baf7263e57caa57e1b4c0ab296d44af6f8ba768471ac"
+      },
+      "engagement": {
+        "tables": 16,
+        "restoreSeconds": 0.916069333,
+        "backupSha256": "bb22233df571b92c49eafa2ed14bc7038dd4af7b79ed242ba99292ed9f76ebc4"
+      },
+      "insights": {
+        "tables": 10,
+        "restoreSeconds": 0.473686875,
+        "backupSha256": "7cb85dd7d65a4c050dbc47d757784c1618a55f10052d4a68d9aa290d0c25e195"
+      },
+      "operations": {
+        "tables": 9,
+        "restoreSeconds": 0.509746791,
+        "backupSha256": "4517752820c4ce13510535b4199da560a5636e51c780f8a05bcbd0ac73ccdee8"
+      }
+    },
+    "redis": "Disposable cache lost; complete durable playback/session/offline ledger unchanged. Actual no-overbooking regression also executes in PlaybackIT.",
+    "media": {
+      "restoreSeconds": 14.122137292,
+      "result": "Independent S3 emulator: every archived manifest/segment/thumbnail byte checksum and object metadata preserved",
+      "objects": 64,
+      "bytes": 995516
+    },
+    "search": {
+      "result": "Deleted index rebuilt by actual checkpoint/indexer/current restored Content owner; duplicate catalog replay leaves restored inbox unchanged",
+      "localizedDocuments": 1
+    },
+    "kafka": {
+      "topics": 17,
+      "restoreSeconds": 43.49059225,
+      "schemaVersions": 20,
+      "result": "New broker/Registry, exact schema IDs/versions, partition/key/value archive and actual consumer replay",
+      "events": 40
+    },
+    "localDrillSeconds": 69.163400209,
+    "snapshotMode": "Quiesced synthetic state; no source writes after backup; not a measured cloud RPO/RTO",
+    "notRun": [
+      "AWS regional failover/failback",
+      "Multi-AZ failover",
+      "production PITR",
+      "MSK MirrorMaker recovery",
+      "commercial DRM/KMS",
+      "Temporal persistent history restore",
+      "real client traffic cutover"
+    ]
+  },
+  "kubernetes": {
+    "cluster": "isolated kind1.37 single-node",
+    "chart": "PASS real migration hook and restricted workload startup",
+    "failure": "PASS DB unavailable removes readiness without liveness restart",
+    "recovery": "PASS schema re-migration and rolling owner restart",
+    "notValidated": [
+      "Multi-AZ",
+      "production ALB/IAM",
+      "NetworkPolicy enforcement with kindnet",
+      "commercial adapters"
+    ]
+  },
+  "worker": {
+    "startup": "PASS real headless Java/Temporal/PG worker at UID10001/read-only",
+    "native": "PASS FFmpeg7.1 executable after OS patch",
+    "dockerHealth": "PASS amd64 image metadata and actual readiness healthcheck becomes healthy",
+    "surface": "PASS business path404; management only",
+    "failure": "PASS Temporal outage readiness503 while worker liveness200"
+  },
+  "scan": {
+    "tool": "Trivy0.75.0",
+    "sourceSecrets": 0,
+    "images": {
+      "member": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "content": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "commerce": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "playback": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "media": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "experience": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "engagement": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "insights": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "operations": {
+        "counts": {
+          "LOW": 16,
+          "MEDIUM": 15,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      },
+      "media-worker": {
+        "counts": {
+          "MEDIUM": 138,
+          "LOW": 18,
+          "CRITICAL": 1
+        },
+        "highCritical": [
+          {
+            "id": "CVE-2026-47884",
+            "package": "org.springframework:spring-webmvc",
+            "severity": "CRITICAL"
+          }
+        ]
+      }
+    },
+    "aggregatePackageFindings": {
+      "CRITICAL": 1
+    },
+    "infrastructureFindings": {
+      "MEDIUM": 22,
+      "LOW": 27
+    },
+    "applicability": "docs/security/scan-applicability.md; remaining Spring MVC finding visible; native FFmpeg coverage not complete"
+  },
+  "runtime": {
+    "owners": 9,
+    "state": "READY",
+    "worker": "Docker healthy",
+    "media": "Actual authenticated Keycloak/catalog/media/Temporal/native FFmpeg/S3/Kafka publication PASS",
+    "launcher": "Selected-owner stop/start and untracked-port refusal preserve remaining owners"
+  },
+  "otherChecks": [
+    "Architecture traceability PASS",
+    "REST security boundary PASS",
+    "Helm lint and semantic/negative production guards PASS",
+    "Terraform schema validation and two mocked plans PASS; no AWS calls",
+    "Python compilation PASS",
+    "Whitespace check PASS"
+  ],
+  "notRun": [
+    "AWS provisioning/actual Multi-AZ/ALB/IRSA/WAF/autoscaling",
+    "regional failover/failback/PITR/MSK offsets/KMS/IdP/Temporal history/client cutover",
+    "commercial payment/DRM/live/ad/message certification",
+    "sustained production load/SLOs and native media security review",
+    "remote CI/complete privacy erasure/regulatory compliance"
+  ]
+}

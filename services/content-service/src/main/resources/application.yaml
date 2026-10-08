@@ -1,0 +1,96 @@
+spring:
+  jackson:
+    deserialization:
+      accept-float-as-int: false
+  application:
+    name: content-service
+  datasource:
+    url: ${CONTENT_DB_URL}
+    username: ${CONTENT_DB_USER}
+    password: ${CONTENT_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      connection-timeout: 1000
+      connection-init-sql: "SET statement_timeout = '2s'; SET lock_timeout = '500ms'"
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+    listener:
+      ack-mode: record
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.ByteArraySerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        delivery.timeout.ms: 5000
+        request.timeout.ms: 2000
+        linger.ms: 5
+        max.block.ms: 2000
+  flyway:
+    enabled: true
+    locations: classpath:db/content
+  mvc:
+    problemdetails:
+      enabled: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+server:
+  port: 8082
+  shutdown: graceful
+  error:
+    include-message: never
+    include-stacktrace: never
+  tomcat:
+    max-http-form-post-size: 256KB
+    threads:
+      max: 100
+    accept-count: 64
+ott:
+  live:
+    feed-secret: ${LIVE_FEED_SECRET:}
+  outbox:
+    enabled: ${OUTBOX_ENABLED:true}
+  schema-registry:
+    url: ${SCHEMA_REGISTRY_URL:http://localhost:8085}
+  security:
+    issuer: ${OIDC_ISSUER}
+    jwks-uri: ${OIDC_JWKS_URL}
+    audience: ${OIDC_AUDIENCE:ott-api}
+management:
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      minimum-expected-value:
+        http.server.requests: 5ms
+      maximum-expected-value:
+        http.server.requests: 3s
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+  tracing:
+    sampling:
+      probability: 0.1
+  otlp:
+    tracing:
+      export:
+        enabled: ${OTEL_EXPORT_ENABLED:false}
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+logging:
+  structured:
+    format:
+      console: ecs

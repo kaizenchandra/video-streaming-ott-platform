@@ -1,0 +1,69 @@
+{
+  "type": "record",
+  "name": "CatalogPublishedV1",
+  "namespace": "com.ott.contracts.events",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string"
+    },
+    {
+      "name": "aggregateVersion",
+      "type": "long"
+    },
+    {
+      "name": "occurredAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "producer",
+      "type": "string"
+    },
+    {
+      "name": "traceId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "contentId",
+      "type": "string"
+    },
+    {
+      "name": "contentVersion",
+      "type": "long"
+    },
+    {
+      "name": "title",
+      "type": "string"
+    },
+    {
+      "name": "contentType",
+      "type": "string"
+    },
+    {
+      "name": "maturity",
+      "type": "int"
+    },
+    {
+      "name": "locales",
+      "type": {
+        "type": "array",
+        "items": "string"
+      }
+    }
+  ]
+}

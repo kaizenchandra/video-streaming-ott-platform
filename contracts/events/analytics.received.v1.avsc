@@ -1,0 +1,110 @@
+{
+  "type": "record",
+  "name": "AnalyticsReceivedV1",
+  "namespace": "com.ott.contracts.events",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string"
+    },
+    {
+      "name": "aggregateVersion",
+      "type": "long"
+    },
+    {
+      "name": "occurredAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "producer",
+      "type": "string"
+    },
+    {
+      "name": "traceId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "accountRef",
+      "type": "string"
+    },
+    {
+      "name": "eventKind",
+      "type": "string"
+    },
+    {
+      "name": "sourceTrust",
+      "type": "string"
+    },
+    {
+      "name": "sourceOccurredAt",
+      "type": "long"
+    },
+    {
+      "name": "regionHint",
+      "type": "string"
+    },
+    {
+      "name": "deviceFamily",
+      "type": "string"
+    },
+    {
+      "name": "cdn",
+      "type": "string"
+    },
+    {
+      "name": "resolution",
+      "type": "string"
+    },
+    {
+      "name": "failureCode",
+      "type": "string"
+    },
+    {
+      "name": "startupMillis",
+      "type": "long"
+    },
+    {
+      "name": "bufferMillis",
+      "type": "long"
+    },
+    {
+      "name": "playedMillis",
+      "type": "long"
+    },
+    {
+      "name": "bitrateKbps",
+      "type": "long"
+    },
+    {
+      "name": "profileRef",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "sessionRef",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    }
+  ]
+}

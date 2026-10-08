@@ -1,0 +1,29 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-api
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health/readiness
+    alb.ingress.kubernetes.io/success-codes: "200"
+    {{- if .Values.ingress.wafAclArn }}
+    alb.ingress.kubernetes.io/wafv2-acl-arn: {{ .Values.ingress.wafAclArn | quote }}
+    {{- end }}
+    alb.ingress.kubernetes.io/certificate-arn: {{ required "TLS certificate ARN required" .Values.ingress.certificateArn | quote }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls: [{hosts: [{{ required "Ingress hostname required" .Values.ingress.host | quote }}], secretName: {{ .Values.ingress.tlsSecret | quote }}}]
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          {{- range $route := .Values.routes }}
+          {{- if (index $.Values.owners $route.owner).enabled }}
+          - path: {{ $route.path | quote }}
+            pathType: ImplementationSpecific
+            backend: {service: {name: {{ $.Release.Name }}-{{ $route.owner }}, port: {number: 8080}}}
+          {{- end }}{{- end }}
+{{- end }}

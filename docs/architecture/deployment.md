@@ -1,0 +1,18 @@
+# Deployment and Multi-AZ design
+
+AWS reference: Route53→CloudFront/WAF (media, static metadata) and ALB/API gateway→EKS across3 private AZ subnets. Nine owners deploy independently after implemented. RDS/Aurora PostgreSQL Multi-AZ per owner credentials; MSK3 brokers replication3/minISR2; ElastiCache replicas with failover fencing; OpenSearch3-AZ when phase7; S3 private origin+OAC; Temporal isolated persistent backend; KMS/Secrets Manager, workload identity/IRSA. DynamoDB is optional measured evolution, not initial dependency. OTel collector/Prometheus/Grafana/Tempo/log backend scoped permissions.
+
+Ingress TLS/WAF limits; strip spoofed geo/subject/forwarding headers and set trusted edge context. Workload JWT/mTLS on internal endpoints. Security groups/network policies deny default, explicit DB/Redis/Kafka/IdP/OTel/S3 egress. Operators/support separate authorization and ingress boundary. DB not public. No service mesh unless measured need.
+
+Helm workload baseline: non-root uid10001, read-only rootfs, dropped capabilities, seccomp RuntimeDefault; startup/readiness/liveness endpoints; resources measured (initial250m/512Mi requests,1CPU/1Gi limits assumptions), graceful30s shutdown, PDB minAvailable2, replicas3, topology spread AZ/hostname, HPA targetCPU60%+latency/queue when metrics validated. Media scratch emptyDir size limits and worker scaling by task queue; Kafka consumer KEDA only in relevant phase. Secrets references only, no committed values.
+
+Argo CD desired-state sync from versioned release refs; CI compiles/tests/contracts/SBOM/scans then produces immutable image digest. Rolling maxUnavailable0/maxSurge1; readiness gates traffic; canary with SLO rollback once implemented. Flyway expand/contract: add nullable/new tables first, dual read/write explicitly, backfill bounded, switch, remove only after supported releases. Destructive rollback prohibited; forward-fix migration. Schema migration job single owner, reviewed before rollout; no automatic shared-schema changes.
+
+Terraform scopes modules/network/data/compute/CDN/security; remote encrypted locked state, IAM least privilege and separate environments. `plan` is reviewable; `apply` needs configured account/cost authorization. IaC creation does not validate cloud deployment. Local Compose development profiles keep optional infra off until phase needs; all exposed ports bind127.0.0.1.
+
+
+## Implemented local packaging and boundary
+
+`infrastructure/helm/ott` and `infrastructure/terraform/aws` implement the reference packaging; [infrastructure guide](../../infrastructure/README.md) records exact prerequisites and deviations. Terraform currently uses one reviewed root module with nine separate Multi-AZ RDS instances, private EKS/MSK/Redis/OpenSearch, dedicated media CMK, signed CloudFront/OAC, regional/global WAF and owner IRSA metadata. It does not provision persistent Temporal/Registry/IdP, Kafka ACLs, cloud Secret contents, app DML users, managed-service logs or a second region. No AWS apply occurred.
+
+The chart renders nine owners and a headless worker; optional HPA is CPU-based70% initially, PDB follows replica count, migration hooks use a separate Secret and never launch business schedulers. Actual release name is `ott`, namespace `ott`; production private overlays require digests, roles, TLS and dependency networks. Commerce/Playback/Media/worker are blocked in prod until commercial adapters exist. Mock values never imply commercial deployment succeeds. The single-node kind drill verifies startup/migrations/DB outage/rolling recovery; ALB quotas/routing, effective network enforcement, IRSA, Multi-AZ availability and autoscaling remain cloud gates.

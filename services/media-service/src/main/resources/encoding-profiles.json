@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "maxDurationSeconds": 18000,
+  "maxFrameRate": 30,
+  "renditions": [
+    {
+      "height": 90,
+      "bitrate": 100000
+    },
+    {
+      "height": 180,
+      "bitrate": 240000
+    },
+    {
+      "height": 360,
+      "bitrate": 700000
+    },
+    {
+      "height": 720,
+      "bitrate": 2500000
+    },
+    {
+      "height": 1080,
+      "bitrate": 5000000
+    }
+  ],
+  "profiles": {
+    "VOD": {
+      "maxFrameRate": 30,
+      "bitrateMultiplier": 1.0
+    },
+    "SPORT": {
+      "maxFrameRate": 60,
+      "bitrateMultiplier": 1.4
+    }
+  }
+}

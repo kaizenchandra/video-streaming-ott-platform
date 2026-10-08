@@ -1,0 +1,96 @@
+{
+  "type": "record",
+  "name": "QoeReceivedV1",
+  "namespace": "com.ott.contracts.events",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string"
+    },
+    {
+      "name": "type",
+      "type": "string"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string"
+    },
+    {
+      "name": "aggregateVersion",
+      "type": "long"
+    },
+    {
+      "name": "occurredAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "producer",
+      "type": "string"
+    },
+    {
+      "name": "traceId",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "sessionId",
+      "type": "string"
+    },
+    {
+      "name": "sampleSequence",
+      "type": "long"
+    },
+    {
+      "name": "startupMillis",
+      "type": "long"
+    },
+    {
+      "name": "bufferMillis",
+      "type": "long"
+    },
+    {
+      "name": "playedMillis",
+      "type": "long"
+    },
+    {
+      "name": "bitrateKbps",
+      "type": "long"
+    },
+    {
+      "name": "eventKind",
+      "type": "string",
+      "default": "PLAY_STARTED"
+    },
+    {
+      "name": "regionHint",
+      "type": "string",
+      "default": "UNKNOWN"
+    },
+    {
+      "name": "deviceFamily",
+      "type": "string",
+      "default": "OTHER"
+    },
+    {
+      "name": "cdn",
+      "type": "string",
+      "default": "OTHER"
+    },
+    {
+      "name": "resolution",
+      "type": "string",
+      "default": "UNKNOWN"
+    },
+    {
+      "name": "failureCode",
+      "type": "string",
+      "default": "NONE"
+    }
+  ]
+}

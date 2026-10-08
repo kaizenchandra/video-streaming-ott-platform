@@ -1,0 +1,52 @@
+openapi: 3.1.0
+info:
+  title: OTT Foundation Management API
+  version: 0.1.0
+  description: Management contract; business endpoints are specified in their implementation phases.
+servers:
+  - url: http://localhost:8081
+paths:
+  /actuator/health/liveness:
+    get:
+      operationId: liveness
+      responses:
+        '200':
+          description: Process alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: Process not alive
+  /actuator/health/readiness:
+    get:
+      operationId: readiness
+      responses:
+        '200':
+          description: Ready for admission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: Critical dependency unavailable
+components:
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [UP, DOWN, OUT_OF_SERVICE, UNKNOWN]
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: {type: string, format: uri}
+        title: {type: string}
+        status: {type: integer, minimum: 400, maximum: 599}
+        detail: {type: string}
+        instance: {type: string}
+        code: {type: string}
+        traceId: {type: string}

@@ -1,0 +1,11 @@
+**/target/
+.local/
+.env
+*.log
+.DS_Store
+**/.terraform/
+*.tfstate*
+*.tfplan
+
+__pycache__/
+*.py[cod]

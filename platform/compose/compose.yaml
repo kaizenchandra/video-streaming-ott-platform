@@ -1,0 +1,293 @@
+name: ott-local
+services:
+  postgres:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: member
+      POSTGRES_USER: member
+      POSTGRES_PASSWORD: ${MEMBER_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5432:5432']
+    volumes: [member-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U member -d member']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  content-postgres:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: content
+      POSTGRES_USER: content
+      POSTGRES_PASSWORD: ${CONTENT_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5433:5432']
+    volumes: [content-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U content -d content']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  commerce-postgres:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: commerce
+      POSTGRES_USER: commerce
+      POSTGRES_PASSWORD: ${COMMERCE_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5434:5432']
+    volumes: [commerce-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U commerce -d commerce']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  playback-postgres:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: playback
+      POSTGRES_USER: playback
+      POSTGRES_PASSWORD: ${PLAYBACK_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5435:5432']
+    volumes: [playback-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U playback -d playback']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  experience-postgres:
+    image: postgres:17.6
+    profiles: [experience]
+    environment:
+      POSTGRES_DB: experience
+      POSTGRES_USER: experience
+      POSTGRES_PASSWORD: ${EXPERIENCE_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5437:5432']
+    volumes: [experience-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U experience -d experience']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  engagement-postgres:
+    image: postgres:17.6
+    profiles: [engagement]
+    environment:
+      POSTGRES_DB: engagement
+      POSTGRES_USER: engagement
+      POSTGRES_PASSWORD: ${ENGAGEMENT_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5438:5432']
+    volumes: [engagement-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U engagement -d engagement']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  operations-postgres:
+    image: postgres:17.6
+    profiles: [operations]
+    environment:
+      POSTGRES_DB: operations
+      POSTGRES_USER: operations
+      POSTGRES_PASSWORD: ${OPERATIONS_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5440:5432']
+    volumes: [operations-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U operations -d operations']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  insights-postgres:
+    image: postgres:17.6
+    profiles: [insights]
+    environment:
+      POSTGRES_DB: insights
+      POSTGRES_USER: insights
+      POSTGRES_PASSWORD: ${INSIGHTS_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5439:5432']
+    volumes: [insights-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U insights -d insights']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  media-postgres:
+    image: postgres:17.6
+    profiles: [media]
+    environment:
+      POSTGRES_DB: media
+      POSTGRES_USER: media
+      POSTGRES_PASSWORD: ${MEDIA_DB_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:5436:5432']
+    volumes: [media-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U media -d media']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  s3:
+    image: localstack/localstack:4.3.0
+    profiles: [media]
+    environment:
+      SERVICES: s3
+    ports: ['127.0.0.1:4566:4566']
+    healthcheck:
+      test: [CMD-SHELL, 'curl -fsS http://localhost:4566/_localstack/health >/dev/null']
+      interval: 5s
+      timeout: 3s
+      retries: 30
+  media-worker:
+    image: ott-media-worker:local
+    platform: linux/amd64
+    build:
+      context: ../..
+      dockerfile: media/worker/Dockerfile
+    profiles: [media-worker]
+    environment:
+      MEDIA_WORKER: 'true'
+      MEDIA_PROTECTION: mock-clear
+      MEDIA_DB_URL: jdbc:postgresql://media-postgres:5432/media
+      MEDIA_DB_USER: media
+      MEDIA_DB_PASSWORD: ${MEDIA_DB_PASSWORD:?run bootstrap-local.py}
+      TEMPORAL_TARGET: temporal:7233
+      S3_ENDPOINT: http://s3:4566
+      QUARANTINE_BUCKET: ott-quarantine
+      ORIGIN_BUCKET: ott-origin
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    read_only: true
+    tmpfs: ['/tmp:size=2g,mode=1777']
+    cpus: 2
+    mem_limit: 1g
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  redis:
+    image: redis:7.4.5
+    command: [redis-server, --appendonly, 'yes']
+    ports: ['127.0.0.1:6379:6379']
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  kafka:
+    image: apache/kafka:3.9.1
+    ports: ['127.0.0.1:9092:9092']
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:19092,EXTERNAL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:19092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    healthcheck:
+      test: [CMD-SHELL, '/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:19092 --list']
+      interval: 10s
+      timeout: 10s
+      retries: 30
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.8.3
+    ports: ['127.0.0.1:8085:8081']
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:19092
+      SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL: BACKWARD_TRANSITIVE
+    depends_on:
+      kafka: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, 'curl -fsS http://localhost:8081/subjects >/dev/null']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.5
+    command: [start-dev, --import-realm]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: local-admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?run bootstrap-local.py}
+      KC_HEALTH_ENABLED: 'true'
+    ports: ['127.0.0.1:8080:8080']
+    volumes: ['../keycloak/realm.json:/opt/keycloak/data/import/realm.json:ro']
+    healthcheck:
+      test: [CMD-SHELL, "bash -c 'exec 3<>/dev/tcp/localhost/9000; printf \"GET /health/ready HTTP/1.0\\r\\n\\r\\n\" >&3; cat <&3 | head -1 | grep 200'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.128.0
+    profiles: [telemetry]
+    command: [--config=/etc/otelcol/config.yaml]
+    volumes: ['../observability/otel.yaml:/etc/otelcol/config.yaml:ro']
+    ports: ['127.0.0.1:4317:4317', '127.0.0.1:4318:4318']
+  prometheus:
+    image: prom/prometheus:v3.4.2
+    profiles: [telemetry]
+    volumes: ['../observability/prometheus.yaml:/etc/prometheus/prometheus.yml:ro']
+    ports: ['127.0.0.1:9090:9090']
+  grafana:
+    image: grafana/grafana:12.0.2
+    profiles: [telemetry]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?run bootstrap-local.py}
+    ports: ['127.0.0.1:3000:3000']
+  opensearch:
+    image: opensearchproject/opensearch:2.19.3
+    profiles: [search]
+    environment:
+      discovery.type: single-node
+      DISABLE_SECURITY_PLUGIN: 'true'
+      DISABLE_INSTALL_DEMO_CONFIG: 'true'
+      OPENSEARCH_JAVA_OPTS: '-Xms512m -Xmx512m'
+    ports: ['127.0.0.1:9200:9200']
+    volumes: [search-data:/usr/share/opensearch/data]
+    cpus: 2
+    mem_limit: 2g
+    pids_limit: 512
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    healthcheck:
+      test: [CMD-SHELL, 'curl -fsS "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s" >/dev/null']
+      interval: 10s
+      timeout: 8s
+      start_period: 40s
+      retries: 20
+  temporal-data-init:
+    image: temporalio/temporal@sha256:ad4c82c97bd12b417d1ea942610dbcd511afb250c4d5ed26c694009533df447e
+    profiles: [media]
+    user: '0:0'
+    entrypoint: [chown]
+    command: [-R, 'temporal:temporal', /data]
+    volumes: [temporal-data:/data]
+    cap_drop: [ALL]
+    cap_add: [CHOWN]
+    security_opt: [no-new-privileges:true]
+  temporal:
+    image: temporalio/temporal@sha256:ad4c82c97bd12b417d1ea942610dbcd511afb250c4d5ed26c694009533df447e
+    profiles: [media]
+    command: [server, start-dev, --ip, 0.0.0.0, --db-filename, /data/temporal.db]
+    volumes: [temporal-data:/data]
+    depends_on:
+      temporal-data-init: {condition: service_completed_successfully}
+    ports: ['127.0.0.1:7233:7233', '127.0.0.1:8233:8233']
+volumes:
+  operations-data:
+  insights-data:
+  search-data:
+  experience-data:
+  engagement-data:
+  media-data:
+  temporal-data:
+  member-data:
+  content-data:
+  playback-data:
+  commerce-data:
+  redis-data:

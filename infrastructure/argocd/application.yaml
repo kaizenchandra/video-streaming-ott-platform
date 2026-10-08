@@ -1,0 +1,21 @@
+# Substitute repository URL and immutable release commit before applying. Auto-sync is intentionally absent.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ott
+  namespace: argocd
+  finalizers: [resources-finalizer.argocd.argoproj.io]
+spec:
+  project: ott
+  source:
+    repoURL: REPLACE_WITH_REPOSITORY_URL
+    targetRevision: REPLACE_WITH_RELEASE_COMMIT
+    path: infrastructure/helm/ott
+    helm:
+      valueFiles: [values-production.yaml]
+      # Credentials are existing owner Secrets, never inline Helm parameters.
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ott
+  syncPolicy:
+    syncOptions: [PruneLast=true]

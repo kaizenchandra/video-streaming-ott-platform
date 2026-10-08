@@ -1,0 +1,18 @@
+{
+  "realm": "ott", "enabled": true,
+  "registrationAllowed": true, "resetPasswordAllowed": true,
+  "bruteForceProtected": true,
+  "accessTokenLifespan": 300,
+  "clients": [{
+    "clientId": "ott-viewer", "publicClient": true,
+    "standardFlowEnabled": true, "directAccessGrantsEnabled": false,
+    "redirectUris": ["http://localhost:3001/callback"],
+    "webOrigins": ["http://localhost:3001"],
+    "attributes": {"pkce.code.challenge.method": "S256"},
+    "protocolMappers": [{
+      "name": "ott-api-audience", "protocol": "openid-connect",
+      "protocolMapper": "oidc-audience-mapper",
+      "config": {"included.custom.audience": "ott-api", "access.token.claim": "true", "id.token.claim": "false"}
+    }]
+  }]
+}

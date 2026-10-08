@@ -1,0 +1,14 @@
+syntax = "proto3";
+package ott.contracts.v1;
+option java_package = "com.ott.contracts.v1";
+option java_multiple_files = true;
+// Design DTO only. No gRPC service deployed before measured need (ADR-004).
+message EligibilityDecision {
+  string account_id = 1;
+  string content_id = 2;
+  string device_id = 3;
+  bool allowed = 4;
+  string denial_code = 5;
+  int64 expires_at_epoch_millis = 6;
+  int64 policy_version = 7;
+}

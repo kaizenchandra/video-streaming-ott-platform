@@ -1,0 +1,25 @@
+# Assumptions and unresolved business questions
+
+- A-01: launch in one AWS region across three AZs; traffic figures are estimates for design, not supplied scale requirements.
+- A-02: group related bounded contexts into nine deployables; implement one service at a time. Each service exclusively owns a PostgreSQL database/user; local sharing of a server is not shared ownership.
+- A-03: OIDC provider is Keycloak locally; production provider remains replaceable. Platform never stores passwords. Viewer registration/authentication belongs to the IdP. An authenticated subject provisions its account lazily through an idempotent API.
+- A-04: subscriptions initially use fixed-duration prepaid periods; currencies use integer minor units, with explicit currency/amount checked against the stored order. Tax, invoicing jurisdiction, proration, trials and recurring mandates require later business configuration, not invented calculations.
+- A-05: no commercial DRM/payment/CDN credentials or sports feed supplied. Explicit mock/local adapters cannot be enabled in production. Mock DRM does not protect clear media.
+- A-06: parental profile age limits enforce content ratings; changing restrictions requires account-owner reauthentication/PIN. Profile ownership is always server-validated.
+- A-07: trusted gateway supplies geo based on source IP and strips client geo headers. Country codes are ISO 3166-1 alpha-2. Geo accuracy and VPN policy need business/provider selection before launch.
+- A-08: online leases expire after 90s; clients heartbeat every 30s; playback/CDN grants last at most 60s. Restart/failover quarantine lasts the maximum issued grant lifetime. Offline revocation is bounded by commercial license renewal/expiry, not immediate.
+- A-09: watch progress is latest server-admitted logical observation, not maximum position (rewind is supported); per-session sequence plus server epoch resolves stale cross-device updates.
+- A-10: initial catalog indexes PostgreSQL; OpenSearch introduced only in phase 7. Temporal introduced with media in phase 5. High-volume DynamoDB migration requires measured PostgreSQL limits and its own ADR.
+- A-11: audit regulatory retention, legal jurisdiction, deletion exceptions, consent ages, data residency, sports latency and QoE contracts remain launch questions. Conservative defaults in data architecture are provisional.
+
+No unresolved question above blocks engineering foundation; commercial launch and affected business policies stay gated. This is a proposed technical baseline under the user's autonomous decision authority, not external architect approval.
+
+- A-10: Initial offline policy allows five active authorizations/account with maximum24h license metadata and60s delivery cookies. These local policies require business confirmation before launch; no commercial offline license generated.
+
+Phase 7 bounds: at most 32 localized variants per catalog item, 10 genres and 20 actors; text uses the standard OpenSearch analyzer until locale-specific evaluation. Search pages are at most 100 candidates and offset at most 1000; current-policy filtering can shorten pages. Country is discovery selection, never proof for playback geo authorization. Index batches at most two snapshots keep worst-case 32-locale I/O inside the 120-second claim; catalog rebuild batches are 20. Rebuild completion reports current projection lag, not a stable watermark while publication continues.
+
+Phase 8: personalization defaults off; enabling it begins contribution eligibility at millisecond server precision. Daily UTC cap is one profile/content and at most 200 distinct contents/profile/day (configurable 1–1000). Derived signals retain 90 days with hourly bounded deletion; trending uses source timestamps over the last day. Source clocks may be at most five minutes ahead. Replays before consent are ignored; opt-out removes profile contributions. Rails inspect at most 100 candidates and return at most 20 per rail, so sparse rights-filtered cohorts can be short. These heuristics have no measured audience/quality/scale claim.
+
+Notification baseline: generic account-level in-app notices default on; optional email/SMS/push default off and require verified signed identity/contact-provider references. Reminder metadata never grants playback. Push verification claim mapping is an environment contact-provider integration, not a caller-supplied Boolean. The local AES-GCM routing key stays stable until an explicit re-encryption/rotation procedure. Already dispatched provider sends may finish after opt-out. Optional provider unknown outcomes require reconciliation; they do not fail payment/playback.
+
+Phase12 local telemetry is optional, account-consented and sparse. Regions/CDN/device/resolution are bounded client measurement hints, never authorization evidence. Samples use interval played/buffer deltas ≤60s and startup ≤120s; no real player accuracy/production throughput is inferred. Initial owner SQL admission precedes unimplemented cloud archival. Owner business signals honor account consent; old ad events without accountId are excluded. Safety decisions cannot be experimented on.

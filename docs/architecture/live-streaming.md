@@ -1,0 +1,14 @@
+# Live streaming and sports
+
+Provider contribution feed→redundant encoders→transcoders→CMAF packagers→private origin→CDN→viewers. Java services manage fixtures, schedules, stream IDs, entitlement, metadata and grants; they never transport live media bytes. Feed acquisition credentials are absent and commercial feeds are out of scope locally.
+
+Event state: SCHEDULED→READY→LIVE→ENDED→ARCHIVED; CANCELLED terminal from scheduled/ready. Optimistic version/CAS ensures one start; operator idempotency key and workload scopes. READY requires healthy encoders/origin, rights window and published metadata. Start emits live.changed outbox; notifications/search react asynchronously. Feed failure changes health/degradation metadata, not fake END success.
+
+DVR uses rolling segment window (proposed2h, business-configurable); archive/catch-up/replay rights separate from live rights and retention. Timeline tracks discontinuities, period IDs, alternate commentary/audio/subtitles, highlights and sport scores. Replay authorization reevaluates rights; live grant cannot unlock replay indefinitely.
+
+Flash crowd: prewarm metadata/entitlement caches without extending rights; precreate capacity/reserve pools; CDN origin shielding and prewarm manifests; scheduled scaling rather than purely reactive HPA; admission fairness/rate limits; optional rails degrade. Low-latency CMAF justified for sports under a proposed <10s glass-to-glass target (not measured); compare origin/CDN request amplification and player compatibility. No promise of a particular latency absent feed/player/CDN integration.
+
+Multi-AZ control plane; dual contribution feeds/encoder redundancy; single active event/control writer fenced by epoch; failover packager aligned timestamps/discontinuities. Operations drill covers feed loss, stale manifests and origin errors; QoE distinguishes stream outage vs authorization denial.
+
+## Phase 9 implemented boundary
+Content owns the event schedule, source epoch and signed proof ledger; Playback uses its existing PostgreSQL/Redis quota and saves event/mode targets. See [ADR-021](../adr/ADR-021-live-control-and-feed-fencing.md). LIVE grants expire by the earlier of 30-second media/proof freshness and current rights/entitlement. ENDED catch-up starts at actual sealed media end, never delayed operator END time. Rescheduling pre-live resets proof and source epoch. Archive/highlight assets must be separately published and separately authorized. Ordinary VOD cannot bypass a linked sports event. The local journey uploads finite synthetic CMAF objects directly to private S3 and signs their manifest proof; it does not establish continuous feed operation, real-time latency, provider eviction or commercial CDN/DRM acceptance. Discontinuity/period alignment, scores, redundant contributions, prewarming and scheduled cloud capacity remain target provider/infrastructure concerns.

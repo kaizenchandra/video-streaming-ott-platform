@@ -1,0 +1,1 @@
+ALTER TABLE offline_grant ADD COLUMN member_epoch BIGINT NOT NULL DEFAULT 0;

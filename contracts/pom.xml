@@ -1,0 +1,14 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion><parent><groupId>com.ott</groupId><artifactId>ott-platform</artifactId><version>0.1.0-SNAPSHOT</version></parent><artifactId>contracts</artifactId>
+  <dependencies>
+    <dependency><groupId>org.apache.avro</groupId><artifactId>avro</artifactId><version>${avro.version}</version></dependency>
+    <dependency><groupId>com.google.protobuf</groupId><artifactId>protobuf-java</artifactId><version>${protobuf.version}</version></dependency>
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.assertj</groupId><artifactId>assertj-core</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>io.swagger.parser.v3</groupId><artifactId>swagger-parser</artifactId><version>${swagger.parser.version}</version><scope>test</scope></dependency>
+  </dependencies>
+  <build><resources><resource><directory>${project.basedir}/events</directory><targetPath>events</targetPath><includes><include>*.avsc</include></includes></resource></resources><extensions><extension><groupId>kr.motd.maven</groupId><artifactId>os-maven-plugin</artifactId><version>1.7.1</version></extension></extensions><plugins>
+    <plugin><groupId>org.apache.avro</groupId><artifactId>avro-maven-plugin</artifactId><version>${avro.version}</version><executions><execution><phase>generate-sources</phase><goals><goal>schema</goal></goals><configuration><sourceDirectory>${project.basedir}/events</sourceDirectory><stringType>String</stringType></configuration></execution></executions></plugin>
+    <plugin><groupId>org.xolstice.maven.plugins</groupId><artifactId>protobuf-maven-plugin</artifactId><version>0.6.1</version><configuration><protoSourceRoot>${project.basedir}/protobuf</protoSourceRoot><protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact></configuration><executions><execution><goals><goal>compile</goal></goals></execution></executions></plugin>
+  </plugins></build>
+</project>
